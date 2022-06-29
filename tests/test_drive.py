@@ -174,3 +174,39 @@ def test_upload_item_small(drive: MSDrive, requests_mock: Mocker):
     drive.upload_item(
         drive_id="b!1abc", item_path="/Documents/test.csv", file_path=file_path
     )
+
+
+def test_list_followed_sites(drive: MSDrive, requests_mock: Mocker):
+    payload = {"value": [{"displayName": "Test site"}]}
+
+    requests_mock.get(
+        f"{BASE_GRAPH_URL}/me/followedSites",
+        request_headers=REQUEST_HEADERS,
+        json=payload,
+    )
+
+    assert payload == drive.list_followed_sites()
+
+
+def test_search_for_site(drive: MSDrive, requests_mock: Mocker):
+    payload = {"value": [{"displayName": "Test site"}]}
+
+    requests_mock.get(
+        f"{BASE_GRAPH_URL}/sites?search=test+site",
+        request_headers=REQUEST_HEADERS,
+        json=payload,
+    )
+
+    assert payload == drive.search_for_site("test site")
+
+
+def test_list_site_drives(drive: MSDrive, requests_mock: Mocker):
+    payload = {"value": [{"name": "Documents"}]}
+
+    requests_mock.get(
+        f"{BASE_GRAPH_URL}/sites/123/drives",
+        request_headers=REQUEST_HEADERS,
+        json=payload,
+    )
+
+    assert payload == drive.list_site_drives("123")
