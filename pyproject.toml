@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "onedrive-sharepoint-python-sdk"
+description = "An SDK for uploading and download files to OneDrive and SharePoint"
+version = "0.0.1"
+readme = "README.md"
+requires-python = ">=3.5"
+keywords = ["onedrive", "sharepoint", "microsoft"]
+license = {text = "BSD 3-Clause License"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+]
+dependencies = [
+    "requests",
+]
+
+[project.optional-dependencies]
+tests = [
+    "pytest",
+    "requests-mock",
+]
