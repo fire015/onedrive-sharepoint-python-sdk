@@ -4,9 +4,9 @@ from .constants import BASE_GRAPH_URL
 
 
 class SharePoint(MSDrive):
-    """Class for accessing files stored in SharePoint (known as DriveItems).
+    """Class for accessing DriveItems stored in SharePoint.
 
-    A DriveItem resource represents a file, folder, or other item stored in a drive.
+    A DriveItem resource represents a file, folder, or other item stored in a drive (a drive being a document library in SharePoint).
 
     All file system objects in SharePoint are returned as DriveItem resources (see https://bit.ly/3HAAxrh).
 

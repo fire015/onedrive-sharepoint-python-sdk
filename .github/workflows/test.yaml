@@ -1,0 +1,29 @@
+name: Run tests
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  test:
+    name: "Python ${{ matrix.python-version }}"
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.5", "3.6", "3.7", "3.8", "3.9"]
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -V
+          pip install --upgrade setuptools build
+          pip install .[tests]
+      - name: Run pytest for ${{ matrix.python-version }}"
+        run: "pytest"

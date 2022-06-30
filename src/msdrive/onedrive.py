@@ -4,7 +4,7 @@ from .constants import BASE_GRAPH_URL
 
 
 class OneDrive(MSDrive):
-    """Class for accessing files stored in OneDrive (known as DriveItems).
+    """Class for accessing DriveItems stored in OneDrive.
 
     A DriveItem resource represents a file, folder, or other item stored in a drive.
 
