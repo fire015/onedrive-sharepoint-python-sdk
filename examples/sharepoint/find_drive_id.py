@@ -15,7 +15,7 @@ def find_drive_id(access_token, site_name):
     if len(sites["value"]) == 0:
         return
 
-    # Assume the first result is the one you want
+    # Assume the first result is the site you want
     site_id = sites["value"][0]["id"]
 
     # List the site's drives
