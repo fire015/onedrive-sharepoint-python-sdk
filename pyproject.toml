@@ -7,11 +7,12 @@ name = "onedrive-sharepoint-python-sdk"
 description = "A Python SDK for accessing files in OneDrive & SharePoint using the Microsoft Graph API"
 version = "0.0.1"
 readme = "README.md"
-url = "https://github.com/fire015/onedrive-sharepoint-python-sdk"
 requires-python = ">=3.7"
 keywords = ["onedrive", "sharepoint", "microsoft"]
 license = {file = "LICENSE.txt"}
-author = "fire015"
+authors = [
+  { name="fire015", email="emailfire@gmail.com" },
+]
 classifiers = [
     "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
@@ -22,6 +23,10 @@ classifiers = [
 dependencies = [
     "requests",
 ]
+
+[project.urls]
+"Homepage" = "https://github.com/fire015/onedrive-sharepoint-python-sdk"
+"Bug Tracker" = "https://github.com/fire015/onedrive-sharepoint-python-sdk/issues"
 
 [project.optional-dependencies]
 tests = [
