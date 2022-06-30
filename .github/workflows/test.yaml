@@ -9,7 +9,7 @@ on:
 
 jobs:
   test:
-    name: "Python ${{ matrix.python-version }}"
+    name: Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -24,6 +24,6 @@ jobs:
         run: |
           python -V
           pip install --upgrade setuptools build
-          pip install .[tests]
-      - name: Run pytest for ${{ matrix.python-version }}"
+          pip install -e .[tests]
+      - name: Run pytest for ${{ matrix.python-version }}
         run: "pytest"
