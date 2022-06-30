@@ -1,78 +1,19 @@
 import os
 from requests import Session
-from urllib.parse import quote
+from abc import ABC, abstractmethod
 from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
-from .constants import BASE_GRAPH_URL, SIMPLE_UPLOAD_MAX_SIZE, CHUNK_UPLOAD_MAX_SIZE
+from .constants import SIMPLE_UPLOAD_MAX_SIZE, CHUNK_UPLOAD_MAX_SIZE
 
 
-class MSDrive:
-    """Class for accessing files stored in OneDrive and SharePoint (known as DriveItems).
-
-    A DriveItem resource represents a file, folder, or other item stored in a drive.
-
-    All file system objects in OneDrive and SharePoint are returned as DriveItem resources (see https://bit.ly/3HAAxrh).
-
-    OneDrive example use::
-
-        from msdrive.drive import MSDrive
-        drive = MSDrive()
-
-        # List files and folders in root directory:
-        drive.list_items(drive_id="me")
-
-        # List files and folders in sub-directory:
-        drive.list_items(drive_id="me", folder_path="/Documents")
-
-        # Download an existing file
-        drive.download_item(drive_id="me", item_path="/Documents/my-data.csv", file_path="my-data.csv")
-        drive.download_item(drive_id="me", item_id="01...", file_path="my-data.csv") # if you know the item ID
-
-        # Upload a new or existing file
-        drive.upload_item(drive_id="me", item_path="/Documents/new-or-existing-file.csv", file_path="new-or-existing-file.csv")
-        drive.upload_item(drive_id="me", item_id="01...", file_path="existing-file.csv") # if you know the item ID
-
-    SharePoint example use::
-
-        # Note: a drive ID is required for most methods (a drive being a document library in SharePoint)
-        # and this can sometimes be difficult to figure out. You can use some of the helper methods below
-        # to work out the drive ID:
-
-        from msdrive.drive import MSDrive
-        drive = MSDrive()
-
-        # List the SharePoint sites that you follow:
-        drive.list_followed_sites()
-
-        # Search for a SharePoint site:
-        drive.search_for_site("my sharepoint site")
-
-        # Once you have found the site you are looking for, take the site ID and pass it to the method below to list it's drives:
-        drive.list_site_drives("XXX-XXX-XXX")
-
-        # Once you have found the drive you are looking for (usually 1 called "Documents") take the drive ID for use below:
-
-        # List files and folders in root directory:
-        drive.list_items(drive_id="b!...")
-
-        # List files and folders in sub-directory:
-        drive.list_items(drive_id="b!...", folder_path="/General")
-
-        # Download an existing file
-        drive.download_item(drive_id="b!...", item_path="/General/shared-data.csv", file_path="shared-data.csv")
-        drive.download_item(drive_id="b!...", item_id="01...", file_path="shared-data.csv") # if you know the item ID
-
-        # Upload a new or existing file
-        drive.upload_item(drive_id="b!...", item_path="/General/new-or-existing-file.csv", file_path="new-or-existing-file.csv")
-        drive.upload_item(drive_id="b!...", item_id="01...", file_path="existing-file.csv") # if you know the item ID
-
-    """
+class MSDrive(ABC):
+    """Abstract class for accessing files stored in OneDrive and SharePoint using the Microsoft Graph API."""
 
     def __init__(self, access_token: str) -> None:
-        """Class constructor that accepts a Microsoft access token for use with the OneDrive/SharePoint API
+        """Class constructor that accepts a Microsoft access token for use with the API
 
         Args:
-            access_token (str): The Microsoft access token
+            access_token (str): The access token
         """
         self.access_token = access_token
 
@@ -80,7 +21,7 @@ class MSDrive:
         """Get metadata for a DriveItem.
 
         Args:
-            drive_id (str): The drive ID (or "me" for your own OneDrive)
+            drive_id (str): The drive ID (only for SharePoint)
             item_id (str): [EITHER] The item ID
             item_path (str): [EITHER] The item path
 
@@ -95,7 +36,7 @@ class MSDrive:
         """List the DriveItems in a specific folder path.
 
         Args:
-            drive_id (str): The drive ID (or "me" for your own OneDrive)
+            drive_id (str): The drive ID (only for SharePoint)
             folder_path (str): The folder path (or leave out for root)
 
         Returns:
@@ -109,7 +50,7 @@ class MSDrive:
         """Download a DriveItem file to a specific local path.
 
         Args:
-            drive_id (str): The drive ID (or "me" for your own OneDrive)
+            drive_id (str): The drive ID (only for SharePoint)
             item_id (str): [EITHER] The item ID
             item_path (str): [EITHER] The item path
             file_path (str): Local path to save the file to (e.g. /tmp/blah.csv)
@@ -133,7 +74,7 @@ class MSDrive:
         Specify the item_path or item_id for an existing file.
 
         Args:
-            drive_id (str): The drive ID (or "me" for your own OneDrive)
+            drive_id (str): The drive ID (only for SharePoint)
             item_id (str): [EITHER] The item ID
             item_path (str): [EITHER] The item path
             file_path (str): Local path to upload the file from (e.g. /tmp/blah.csv)
@@ -148,43 +89,13 @@ class MSDrive:
         else:
             self._upload_item_large(**kwargs)
 
-    def list_followed_sites(self) -> dict:
-        """List the SharePoint sites that you follow.
+    @abstractmethod
+    def _get_drive_item_url(self, **kwargs) -> str:
+        raise NotImplementedError("Must be overridden")
 
-        Returns:
-            dict: JSON representation of a collection of site resources
-        """
-        r = self._session().get(f"{BASE_GRAPH_URL}/me/followedSites")
-
-        return r.json()
-
-    def search_for_site(self, search_query: str) -> dict:
-        """Search for a SharePoint site.
-
-        Args:
-            search_query (str): The search query
-
-        Returns:
-            dict: JSON representation of a collection of site resources
-        """
-        r = self._session().get(
-            f"{BASE_GRAPH_URL}/sites", params={"search": search_query}
-        )
-
-        return r.json()
-
-    def list_site_drives(self, site_id: str) -> dict:
-        """List a SharePoint site's drives.
-
-        Args:
-            site_id (str): The site ID
-
-        Returns:
-            dict: JSON representation of a collection of drive resources
-        """
-        r = self._session().get(f"{BASE_GRAPH_URL}/sites/{site_id}/drives")
-
-        return r.json()
+    @abstractmethod
+    def _get_drive_children_url(self, **kwargs) -> str:
+        raise NotImplementedError("Must be overridden")
 
     def _session(self) -> Session:
         # Raise HTTPError for non-200 status codes
@@ -217,42 +128,6 @@ class MSDrive:
         s.hooks["response"] = [raise_status_hook]
 
         return s
-
-    def _get_drive_item_url(self, **kwargs) -> str:
-        if kwargs.get("drive_id") and kwargs.get("item_id"):
-            if kwargs["drive_id"] == "me":
-                return f"{BASE_GRAPH_URL}/me/drive/items/{kwargs['item_id']}"
-            else:
-                return f"{BASE_GRAPH_URL}/drives/{kwargs['drive_id']}/items/{kwargs['item_id']}"
-
-        if kwargs.get("drive_id") and kwargs.get("item_path"):
-            path = quote(kwargs["item_path"].lstrip("/"))
-
-            if kwargs["drive_id"] == "me":
-                return f"{BASE_GRAPH_URL}/me/drive/root:/{path}"
-            else:
-                return f"{BASE_GRAPH_URL}/drives/{kwargs['drive_id']}/root:/{path}"
-
-        raise ValueError(
-            "Missing arguments: drive_id + item_id or drive_id + item_path"
-        )
-
-    def _get_drive_children_url(self, **kwargs) -> str:
-        if not kwargs.get("drive_id"):
-            raise ValueError("Missing drive_id argument")
-
-        if not kwargs.get("folder_path"):
-            if kwargs["drive_id"] == "me":
-                return f"{BASE_GRAPH_URL}/me/drive/root/children"
-            else:
-                return f"{BASE_GRAPH_URL}/drives/{kwargs['drive_id']}/root/children"
-        else:
-            path = quote(kwargs["folder_path"].lstrip("/").rstrip("/"))
-
-            if kwargs["drive_id"] == "me":
-                return f"{BASE_GRAPH_URL}/me/drive/root:/{path}:/children"
-            else:
-                return f"{BASE_GRAPH_URL}/drives/{kwargs['drive_id']}/root:/{path}:/children"
 
     def _upload_item_small(self, **kwargs) -> None:
         url = self._get_drive_item_url(**kwargs)
