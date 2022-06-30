@@ -23,7 +23,7 @@ Use a library like [MSAL](https://pypi.org/project/msal/) or [Azure Identity](ht
 See the `examples` folder for more.
 
 ### OneDrive
-```
+```python
 from msdrive import OneDrive
 
 drive = OneDrive("access_token_here")
@@ -33,7 +33,7 @@ drive.upload_item(item_path="/Documents/new-or-existing-file.csv", file_path="ne
 ```
 
 ### SharePoint
-```
+```python
 from msdrive import SharePoint
 
 drive = SharePoint("access_token_here")

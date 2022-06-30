@@ -20,7 +20,7 @@ class OneDrive(MSDrive):
             path = quote(kwargs["item_path"].lstrip("/"))
             return f"{BASE_GRAPH_URL}/me/drive/root:/{path}"
 
-        raise ValueError("Missing arguments: item_id or item_path")
+        raise ValueError("Missing argument: item_id or item_path")
 
     def _get_drive_children_url(self, **kwargs) -> str:
         if not kwargs.get("folder_path"):
