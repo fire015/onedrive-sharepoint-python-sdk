@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "onedrive-sharepoint-python-sdk"
 description = "A Python SDK for accessing files in OneDrive & SharePoint using the Microsoft Graph API"
-version = "0.0.1"
+version = "0.0.2"
 readme = "README.md"
 requires-python = ">=3.7"
 keywords = ["onedrive", "sharepoint", "microsoft"]
