@@ -47,3 +47,6 @@ Use a library like [MSAL](https://pypi.org/project/msal/) or [Azure Identity](ht
 pip install -e .[tests]
 pytest # run unit tests
 ```
+
+## Deployment
+Bump the version in `pyproject.toml` and `src/msdrive/__init__.py` and then run the `Upload Python Package` pipeline.
