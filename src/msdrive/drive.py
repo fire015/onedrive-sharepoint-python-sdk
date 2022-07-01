@@ -1,11 +1,13 @@
 import os
-from .exceptions import *
-from requests import Session
 from abc import ABC, abstractmethod
-from urllib3.util.retry import Retry
+
+from requests import Session
 from requests.adapters import HTTPAdapter
 from requests.exceptions import HTTPError
-from .constants import SIMPLE_UPLOAD_MAX_SIZE, CHUNK_UPLOAD_MAX_SIZE
+from urllib3.util.retry import Retry
+
+from .constants import CHUNK_UPLOAD_MAX_SIZE, SIMPLE_UPLOAD_MAX_SIZE
+from .exceptions import *
 
 
 class MSDrive(ABC):
@@ -154,7 +156,6 @@ class MSDrive(ABC):
 
                 s = self._session_upload()
 
-                # Setting the header with the appropriate chunk data location in the file
                 headers = {
                     "Content-Length": str(chunk_size),
                     "Content-Range": "bytes {}-{}/{}".format(

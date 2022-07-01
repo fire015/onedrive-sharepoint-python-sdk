@@ -1,6 +1,7 @@
-from .drive import MSDrive
 from urllib.parse import quote
+
 from .constants import BASE_GRAPH_URL
+from .drive import MSDrive
 
 
 class OneDrive(MSDrive):
