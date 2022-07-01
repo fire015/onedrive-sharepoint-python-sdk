@@ -1,6 +1,5 @@
 import os
 import pytest
-from requests.exceptions import HTTPError
 from requests_mock import Mocker
 from msdrive import SharePoint
 from msdrive.constants import BASE_GRAPH_URL
@@ -42,15 +41,6 @@ def test_get_item_data(drive: SharePoint, requests_mock: Mocker):
     assert payload == drive.get_item_data(
         drive_id="b!1abc", item_path="/Documents/test.csv"
     )
-
-    requests_mock.get(
-        f"{BASE_GRAPH_URL}/drives/b!1abc/root:/none.csv",
-        request_headers=REQUEST_HEADERS,
-        status_code=404,
-    )
-
-    with pytest.raises(HTTPError):
-        drive.get_item_data(drive_id="b!1abc", item_path="/none.csv")
 
 
 def test_list_items_missing_values(drive: SharePoint):
