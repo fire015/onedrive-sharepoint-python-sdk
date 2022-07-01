@@ -1,8 +1,10 @@
 import os
+from .exceptions import *
 from requests import Session
 from abc import ABC, abstractmethod
 from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
+from requests.exceptions import HTTPError
 from .constants import SIMPLE_UPLOAD_MAX_SIZE, CHUNK_UPLOAD_MAX_SIZE
 
 
@@ -98,24 +100,13 @@ class MSDrive(ABC):
         raise NotImplementedError("Must be overridden")
 
     def _session(self) -> Session:
-        # Raise HTTPError for non-200 status codes
-        raise_status_hook = (
-            lambda response, *args, **kwargs: response.raise_for_status()
-        )
-
         s = Session()
-        s.hooks["response"] = [raise_status_hook]
+        s.hooks["response"] = [self.raise_error_hook]
         s.headers.update({"Authorization": "Bearer " + self.access_token})
 
         return s
 
     def _session_upload(self) -> Session:
-        # Raise HTTPError for non-200 status codes
-        raise_status_hook = (
-            lambda response, *args, **kwargs: response.raise_for_status()
-        )
-
-        # Retry on failure (https://findwork.dev/blog/advanced-usage-python-requests-timeouts-retries-hooks/)
         retries = Retry(
             total=3, backoff_factor=1, status_forcelist=[500, 502, 503, 504]
         )
@@ -125,7 +116,7 @@ class MSDrive(ABC):
         s = Session()
         s.mount("http://", adapter)
         s.mount("https://", adapter)
-        s.hooks["response"] = [raise_status_hook]
+        s.hooks["response"] = [self.raise_error_hook]
 
         return s
 
@@ -188,3 +179,30 @@ class MSDrive(ABC):
         r = self._session().post(url)
 
         return r.json()["uploadUrl"]
+
+    def raise_error_hook(self, resp, *args, **kwargs) -> None:
+        try:
+            resp.raise_for_status()
+        except HTTPError as err:
+            self._handle_http_error(err)
+
+    def _handle_http_error(self, err: HTTPError) -> None:
+        if err.response is None:
+            raise err
+
+        try:
+            body = err.response.json()
+            message = body["error"]["message"]
+        except Exception:
+            raise err
+
+        if err.response.status_code == 401:
+            raise InvalidAccessToken(message)
+
+        if err.response.status_code == 404:
+            raise ItemNotFound(message)
+
+        if err.response.status_code == 429:
+            raise RateLimited(message)
+
+        raise DriveException(message)

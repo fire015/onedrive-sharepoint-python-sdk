@@ -1,6 +1,5 @@
 import os
 import pytest
-from requests.exceptions import HTTPError
 from requests_mock import Mocker
 from msdrive import OneDrive
 from msdrive.constants import BASE_GRAPH_URL
@@ -37,15 +36,6 @@ def test_get_item_data(drive: OneDrive, requests_mock: Mocker):
     )
 
     assert payload == drive.get_item_data(item_path="/Documents/test.csv")
-
-    requests_mock.get(
-        f"{BASE_GRAPH_URL}/me/drive/root:/none.csv",
-        request_headers=REQUEST_HEADERS,
-        status_code=404,
-    )
-
-    with pytest.raises(HTTPError):
-        drive.get_item_data(item_path="/none.csv")
 
 
 def test_list_items(drive: OneDrive, requests_mock: Mocker):
